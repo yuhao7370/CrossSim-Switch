@@ -1,0 +1,8 @@
+{
+  "title": "Cross-SIM",
+  "permissions": ["kernelsu.permission.SHELL"],
+  "backHandler": true,
+  "exitConfirm": false,
+  "pullToRefresh": false,
+  "caching": false
+}

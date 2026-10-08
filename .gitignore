@@ -1,0 +1,22 @@
+/build/
+/dist/
+
+# Local design references and development notes; README is the only tracked guide.
+/design/
+/screenshots/
+/references/
+*.md
+!/README.md
+
+# Local PowerShell helpers; supported commands live in README.
+/*.ps1
+
+# Generated binaries and logs.
+*.apk
+*.class
+*.dex
+*.jar
+*.zip
+*.log
+__pycache__/
+*.pyc

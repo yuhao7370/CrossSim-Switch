@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self'">
+  <title>Cross-SIM</title>
+  <script src="i18n.js"></script>
+  <link rel="stylesheet" href="style.css">
+  <script src="host-bridge.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <main id="app">
+    <section id="home" class="page" role="tabpanel" aria-labelledby="tab-home">
+      <h1 data-i18n="app">Cross-SIM</h1>
+      <div id="cards" class="cards" aria-label="SIM 卡" data-i18n-aria="sims"></div>
+      <p id="empty" class="empty">读取中</p>
+      <p id="data" class="data"></p>
+      <button id="error-link" class="text-button" data-i18n="viewSettings" hidden>查看设置</button>
+    </section>
+    <div id="settings-panel" role="tabpanel" aria-labelledby="tab-preferences" hidden>
+      <section id="preferences" class="page" hidden>
+        <h1 data-i18n="settings">设置</h1>
+        <div class="group">
+          <button class="row" id="theme" aria-haspopup="dialog"><span data-i18n="theme">外观</span><span id="theme-value" class="value">跟随系统</span><span class="ui-icon icon-chevron" aria-hidden="true"></span></button>
+          <button class="row" id="language" aria-haspopup="dialog"><span data-i18n="language">语言</span><span id="language-value" class="value">跟随系统</span><span class="ui-icon icon-chevron" aria-hidden="true"></span></button>
+        </div>
+        <div class="group">
+          <button class="row" id="root"><span data-i18n="root">执行权限</span><span id="root-state" class="value">读取中</span><span class="ui-icon icon-chevron" aria-hidden="true"></span></button>
+          <button class="row" id="refresh"><span id="refresh-label" data-i18n="refresh">刷新状态</span><span id="refresh-icon" class="ui-icon icon-refresh" aria-hidden="true"></span></button>
+        </div>
+        <div class="group"><button class="row" id="about"><span data-i18n="about">关于</span><span class="ui-icon icon-chevron" aria-hidden="true"></span></button></div>
+        <footer>1.0.0</footer>
+      </section>
+      <section id="permission" class="page" hidden>
+        <h1 data-i18n="root">执行权限</h1>
+        <div class="group"><div class="row"><span data-i18n="mode">运行方式</span><span class="value" data-i18n="module">模块</span></div><div class="row"><span data-i18n="rootLabel">Root</span><span id="permission-state" class="value">读取中</span></div></div>
+        <p class="hint" data-i18n="permissionHint">由当前 WebUI 宿主提供</p>
+        <button id="retry" class="primary" data-i18n="retry">重新读取</button>
+        <details id="diagnostics" hidden><summary data-i18n="details">查看详情</summary><p id="error-detail"></p></details>
+      </section>
+      <section id="info" class="page" hidden>
+        <h1 data-i18n="about">关于</h1>
+        <div class="brand"><img class="app-icon" src="assets/sim-flat.png" width="68" height="68" alt="" decoding="async"><h2 data-i18n="app">Cross-SIM</h2><p>1.0.0</p></div>
+        <div class="group"><a class="row" id="author" href="https://github.com/yuhao7370" target="_blank" rel="noopener noreferrer"><span data-i18n="author">作者</span><span class="value">yuhao7370</span><span class="ui-icon icon-chevron" aria-hidden="true"></span></a></div>
+      </section>
+    </div>
+  </main>
+  <nav id="bottom-nav" class="bottom-nav" role="tablist" aria-label="页面" data-i18n-aria="pages" data-page="home">
+    <span class="tab-indicator" aria-hidden="true"></span>
+    <button id="tab-home" type="button" role="tab" data-tab="home" aria-controls="home" aria-selected="true"><span class="ui-icon icon-home" aria-hidden="true"></span><span data-i18n="home">主页</span></button>
+    <button id="tab-preferences" type="button" role="tab" data-tab="preferences" aria-controls="settings-panel" aria-selected="false"><span class="ui-icon icon-settings" aria-hidden="true"></span><span data-i18n="settings">设置</span></button>
+  </nav>
+  <div id="picker" class="picker-overlay" hidden>
+    <button id="picker-close" class="picker-scrim" aria-label="关闭" data-i18n-aria="close" tabindex="-1"></button>
+    <section class="picker-sheet" role="dialog" aria-modal="true" aria-labelledby="picker-title">
+      <div class="picker-handle" aria-hidden="true"></div>
+      <h2 id="picker-title"></h2>
+      <div id="picker-options" role="radiogroup" aria-labelledby="picker-title"></div>
+    </section>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <template id="card-template"><article class="sim-card"><div class="slot"><span class="ui-icon icon-sim" aria-hidden="true"></span><span class="slot-label"></span></div><h2 class="name"></h2><p class="status"></p><button class="switch" role="switch" aria-checked="false" disabled><span></span></button></article></template>
+</body>
+</html>

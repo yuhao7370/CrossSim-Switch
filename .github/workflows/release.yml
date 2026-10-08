@@ -1,0 +1,91 @@
+name: Release
+run-name: Release Cross-SIM ${{ inputs.version }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version, e.g. 1.0.0 (without v)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    if: github.actor == github.repository_owner && github.triggering_actor == github.repository_owner
+    permissions:
+      contents: write
+    concurrency:
+      group: crosssim-release
+      cancel-in-progress: false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      VERSION: ${{ inputs.version }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate release version
+        run: |
+          if [[ ! "$VERSION" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo 'Enter a version such as 1.0.0, without a v prefix.' >&2
+            exit 1
+          fi
+          if git show-ref --verify --quiet "refs/tags/v$VERSION"; then
+            echo "Tag v$VERSION already exists; choose a new version." >&2
+            exit 1
+          fi
+          base_code=$(sed -n 's/^versionCode=//p' module/module.prop)
+          echo "VERSION_CODE=$((base_code + GITHUB_RUN_NUMBER - 1))" >> "$GITHUB_ENV"
+
+      - name: Set up Java
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '24'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
+        with:
+          packages: 'platforms;android-35 build-tools;35.0.0'
+          log-accepted-android-sdk-licenses: false
+
+      - name: Test
+        run: node --test tests/webui.test.cjs tests/host-bridge.test.cjs tests/installer.test.cjs tests/action.test.cjs
+
+      - name: Build module
+        run: python3 scripts/build-module.py --version "$VERSION" --version-code "$VERSION_CODE"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: Cross-SIM-${{ inputs.version }}
+          path: |
+            dist/Cross-SIM-${{ inputs.version }}.zip
+            dist/Cross-SIM-${{ inputs.version }}.zip.sha256
+          if-no-files-found: error
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" \
+            -f "ref=refs/tags/v$VERSION" -f "sha=$GITHUB_SHA" > /dev/null
+          gh release create "v$VERSION" \
+            "dist/Cross-SIM-$VERSION.zip" "dist/Cross-SIM-$VERSION.zip.sha256" \
+            --repo "$GITHUB_REPOSITORY" --verify-tag \
+            --title "Cross-SIM $VERSION" --generate-notes
